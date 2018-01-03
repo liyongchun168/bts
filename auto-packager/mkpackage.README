@@ -1,0 +1,90 @@
+== FWTS Uploading ==
+
+General procedure
+-----------------
+
+Periodically we've put enough patches into fwts to deem it ready for a new upload. To do so, we
+update the changelog with a summary of the changes, update the version tag, push these, then
+we clone the repo, remove the .git directory and create debian source packages ready for uploading
+and building in the fwts PPAs.
+
+Here's how I went from Version V0.25.03 to V0.25.04
+
+In the fwts git repo:
+
+See the current version:
+
+./update_version.sh
+You need to specify the version number
+The last version was V0.25.03
+
+Use git log to see what's been added since the last tagged release, e.g.
+
+git shortlog  V0.25.03..HEAD | sed "s/^     /  */g"
+
+collect up one-line-summary of changes, add them to debian/changelog:
+
+e.g.
+
+fwts (0.25.04) quantal; urgency=low
+
+  [Colin Ian King]
+  * apci: acpitables: only check CMOS in BOOT table from firmware tables
+    (LP: #1016469)
+  * lib: fwts_acpi_tables: add ACPI table provenance
+  * lib: fwts_acpi_tables: load tables in deterministically
+  * lib: fwts_log: handle special logfile names
+  * lib: log: move line counting to logging back-ends
+  * lib: fwts_log: remove fwts_log_line_number(), no longer used
+  * lib: fwts_framework: output all logfile names being written to
+  * lib: fwts_log: add fwts_log_get_filenames()
+  * lib: fwts_summary: remove references to log line number
+
+  [Keng-Yu Lin]
+  * debian: Fix up the dependency of debian packages
+
+ -- Keng-Yu Lin <kengyu@ubuntu.com>  Mon, 25 Jun 2012 16:44:51 +0800
+
+
+then:
+
+git add debian/changelog
+git commit -s -m"debian: update changelog"
+
+
+Next, update the tag:
+
+./update-version V0.25.04
+
+git push
+git push --tags
+
+Next, create a directory for creating the tarball and checksum and run the mktar.sh script.
+Upload the generated tarball and SHA256SUMS to the desired localtion for the releasing.
+
+Next, create an auto-packager directory somewhere and run the mkpackage.sh script from within it. E.g
+
+mkdir /home/cking/fwts/auto-packager
+cp mkpackage.sh /home/cking/fwts/auto-packager
+cd /home/cking/fwts/auto-packager
+./mkpackage.sh V0.25.04
+
+and this will clone the git repo, remove the .git directory and create packages for uploading.
+For a release like Precise, it generates:
+
+V0.25.04/precise/fwts_0.25.04
+V0.25.04/oneiric/fwts_0.25.04~o*
+V0.25.04/natty/fwts_0.25.04~n*
+V0.25.04/lucid/fwts_0.25.04~l*
+
+NOTE: The current release does not end with ~ suffix to the version name. This version is the
+one that gets periodically uploaded to universe in the current release until we get to feature freeze.  
+
+And dput these into the  ppa:firmware-testing-team/ppa-fwts-unstable-crack PPA
+
+Let it shake out - build + test etc.  Get users to test against this. Onece you are OK with it,
+copy the packages into ppa:firmware-testing-team/ppa-fwts-devel
+
+Every so often during the distro release cycle copy the stable current package into universe. You can either do this on every version number bump or when you deem that a new version is really stable.
+
+Once a package has been copied to universe, we then copy the packages from ppa:firmware-testing-team/ppa-fwts-devel to ppa:firmware-testing-team/ppa-fwts-stable.

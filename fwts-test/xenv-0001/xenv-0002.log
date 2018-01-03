@@ -1,0 +1,15 @@
+xenv            xenv: XENV Xen Environment Table tests.
+xenv            ----------------------------------------------------------
+xenv            Test 1 of 1: Validate XENV table.
+xenv            XENV Table:
+xenv              GNT Start Address:               0x0000000010000000
+xenv              GNT Size:                        0x0000000000002000
+xenv              Evtchn Intr:                     0x25000000
+xenv              Evtchn Intr Flags:               0x07
+xenv            FAILED [HIGH] XENVReservedBitsNonZero: Test 1, XENV Evtchn
+xenv            Intr Flags Bits [7..2] must be zero, got 0x07 instead
+xenv            
+xenv            ==========================================================
+xenv            0 passed, 1 failed, 0 warning, 0 aborted, 0 skipped, 0
+xenv            info only.
+xenv            ==========================================================
